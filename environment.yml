@@ -1,0 +1,9 @@
+name: pyTensileTest
+dependencies:
+  - numpy
+  - matplotlib
+  - sympy
+  - pip
+  - pip:
+    - little_helpers
+
