@@ -1,6 +1,7 @@
 name: pyTensileTest
 dependencies:
   - numpy
+  - pandas
   - matplotlib
   - sympy
   - pip

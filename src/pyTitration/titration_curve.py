@@ -19,6 +19,7 @@ class titration():
     def __init__(self, k, mode='acid', kw=1E-14):
 
         self.set_basic_params(k, mode=mode, kw=kw)
+        self.latest_curve = None
 
     def set_basic_params(self, k, mode='acid', kw=1E-14):
         self.k = k
@@ -34,7 +35,7 @@ class titration():
         self.equation = (v_titrant*(c_titrant + c_analytix - kw/c_analytix) -
                          v_analyte*(c_analyte*(k[0]*c_analytix**2+2*k[0]*k[1]*c_analytix+3*k[0]*k[1]*k[2])/
                                     (c_analytix**3+k[0]*c_analytix**2+k[0]*k[1]*c_analytix+k[0]*k[1]*k[2]) - c_analytix + kw/c_analytix))
-        self.latest_curve = None
+        # self.latest_curve = None
 
     def curve(self, v_analyte, c_analyte, c_titrant, data_points=100,
               indep_var='v_titrant', indep_var_min=0, indep_var_max=10):
@@ -68,7 +69,6 @@ class titration():
 
         idx = closest_index(sorted([ph1, ph2]), self.latest_curve[1])
         volume = np.diff(self.latest_curve[0][idx]).item()
-        print(volume)
         return volume
 
 if __name__ == "__main__":
