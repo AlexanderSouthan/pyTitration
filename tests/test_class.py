@@ -9,7 +9,7 @@ Created on Sat Oct 16 19:59:07 2021
 import numpy as np
 import unittest
 
-from src.pyTitration.titration_curve import titration
+from src.pyTitration.titration import titration
 
 
 class TestController(unittest.TestCase):
