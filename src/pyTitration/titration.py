@@ -8,8 +8,71 @@ Created on Mon Feb 20 14:37:50 2023
 import numpy as np
 from sympy import Symbol
 from sympy import solveset
+from scipy.optimize import brentq
 
 from little_helpers.array_tools import closest_index
+
+
+class solution():
+    def __init__(self, k_solutes, c_solutes, prot_left, kw=1E-14):
+        self.k_solutes = np.asarray(k_solutes)
+        self.c_solutes = np.asarray(c_solutes)
+        self.prot_left = prot_left
+        self.kw = kw
+
+        self.h_plus = Symbol('h_plus')
+
+        self._calc_equation()
+
+    def calc_ph(self, ph_min=0, ph_max=16):
+        c_h_plus = brentq(
+            self._calc_equation_value, 10**-ph_max, 10**-ph_min, xtol=1E-16)
+        return -np.log10(c_h_plus)
+
+    def _calc_f(self):
+        n = np.sum(self.k_solutes!=0, axis=1)
+        assert self.k_solutes.shape[0] == len(self.prot_left), (
+            'Number of dissociation constant sets and entries in prot_left '
+            'must be equal, but are {} and {}.').format(
+                self.k_solutes.shape[0], len(self.prot_left))
+        assert (self.prot_left <= n).all(), (
+            'prot_left is {} and n is {}, but prot_left must be smaller '
+            'or equal n.').format(self.prot_left, n)
+
+        funcs = []
+        for curr_prot, curr_n, curr_k_set in zip(self.prot_left, n,
+                                                 self.k_solutes):
+            m_range = np.arange(0, curr_n+1)
+            mask = np.ones_like(m_range, dtype=bool)
+            mask[curr_prot] = False
+
+            m_range = m_range[mask]
+            front_factors = m_range - curr_prot
+
+            alpha = []
+            for m in m_range:
+                numer = self.h_plus**m * np.prod(curr_k_set[:curr_n-m])
+                denom = self.h_plus**curr_n
+                for ii, _ in enumerate(curr_k_set):
+                    denom += self.h_plus**(curr_n-ii-1)*np.prod(
+                        curr_k_set[:ii+1])
+                alpha.append(numer/denom)
+
+            func = 0
+            for curr_alpha, curr_ff in zip(alpha, front_factors):
+                func += curr_ff * curr_alpha
+            funcs.append(func)
+        return np.asarray(funcs)
+
+    def _calc_equation(self):
+        delta = self.h_plus - self.kw/self.h_plus
+        func = self._calc_f()
+        self.equation = np.sum(func*self.c_solutes, axis=0)+delta
+        return self.equation
+
+    def _calc_equation_value(self, c_h_plus):
+        return float(self.equation.subs({'h_plus': c_h_plus}))
+
 
 class titration():
     def __init__(self, k_analyte, k_titrant, c_analyte, c_titrant,
@@ -63,15 +126,11 @@ class titration():
 
     def set_basic_params(self, k_analyte, k_titrant, c_analyte, c_titrant,
                          prot_left_ana, prot_left_tit, kw=1E-14):
-        self.k_analyte = np.asarray(k_analyte)
-        self.k_titrant = np.asarray(k_titrant)
-        self.c_analyte = np.asarray(c_analyte)
-        self.c_titrant = np.asarray(c_titrant)
-        self.prot_left_ana = prot_left_ana
-        self.prot_left_tit = prot_left_tit
-        self.kw = kw
-
-        self.h_plus = Symbol('h_plus')
+        self.analyte = solution(k_analyte, c_analyte, prot_left_ana, kw=kw)
+        self.titrant = solution(k_titrant, c_titrant, prot_left_tit, kw=kw)
+        self.ph_bounds = np.sort(
+            [self.analyte.calc_ph(), self.titrant.calc_ph()])
+        self.h_plus_bounds = (10**-self.ph_bounds)[::-1]
 
         self._calc_equation()
         # self.latest_curve = None
@@ -96,9 +155,10 @@ class titration():
         indep_var : str, optional
             Can either be 'v_titrant' or 'pH'. If it is 'v_titrant', the
             titration curve equation has to be solved for the H+ concentration
-            which is not an easy task. This basically does not work aat the
-            moment. The default is 'pH' and the equation is solved for the
-            titrant volume which is very easy.
+            which is not an easy task. This does work in principle at the
+            moment, but the bounds used could be improved. The default is 'pH'
+            and the equation is solved for the titrant volume which is very
+            easy.
         indep_var_min : float, optional
             The minimum value of the independent variable used for the
             calculation, as defined by indep_var. The default is 0.
@@ -114,16 +174,23 @@ class titration():
 
         """
         if indep_var == 'v_titrant':
-            # this part is basically unfunctional at the moment, the root
-            # finding procedure would have to be changed so that a solution
-            # is found reliably.
             v_titrant = np.linspace(indep_var_min, indep_var_max, data_points)
             c_h_plus = np.empty_like(v_titrant)
             for idx, curr_v in enumerate(v_titrant):
-                c_h_plus[idx] = max(solveset(self.equation.subs(
-                    {'v_titrant': curr_v, 'v_analyte': v_analyte}), 'h_plus'))
+                c_h_plus[idx] = brentq(
+                    self._calc_equation_value, 0,  # self.h_plus_bounds[0],
+                    0.99*self.h_plus_bounds[1], args=(v_analyte, curr_v),
+                    xtol=1E-16)
             ph = -np.log10(c_h_plus)
         elif indep_var == 'pH':
+            if (indep_var_min <= self.ph_bounds[0]) or (
+                    indep_var_max >= self.ph_bounds[1]):
+                raise ValueError(
+                    'The minimum pH value must be greater than {} and smaller '
+                    'than {} (the analyte/titrant pH values), but are {} '
+                    'and {}.'.format(self.ph_bounds[0], self.ph_bounds[1],
+                                     indep_var_min, indep_var_max))
+
             ph = np.linspace(indep_var_min, indep_var_max, data_points)
             c_h_plus = 10**(-ph)
             v_titrant = np.empty_like(ph)
@@ -152,47 +219,12 @@ class titration():
         v_titrant = Symbol('v_titrant')
         v_analyte = Symbol('v_analyte')
 
-        delta = self.h_plus - self.kw/self.h_plus
+        analyte_func = self.analyte._calc_equation()
+        titrant_func = self.titrant._calc_equation()
 
-        analyte_func = self._calc_f(
-            self.k_analyte, self.prot_left_ana)
-        titrant_func = self._calc_f(
-            self.k_titrant, self.prot_left_tit)
+        self.equation = -v_titrant/v_analyte - analyte_func/titrant_func
 
-        self.equation = -v_titrant/v_analyte - (
-            np.sum(analyte_func*self.c_analyte, axis=0)+delta)/(
-                np.sum(titrant_func*self.c_titrant, axis=0)+delta)
-
-    def _calc_f(self, k, protons_left):
-        n = np.sum(k!=0, axis=1)
-        assert k.shape[0] == len(protons_left), (
-            'Number of dissociation constant sets and entries in protons_left '
-            'must be equal, but are {} and {}.').format(
-                k.shape[0], len(protons_left))
-        assert (protons_left <= n).all(), (
-            'protons_left is {} and n is {}, but protons_left must be smaller '
-            'or equal n.').format(protons_left, n)
-
-        funcs = []
-        for curr_prot, curr_n, curr_k_set in zip(protons_left, n, k):
-            m_range = np.arange(0, curr_n+1)
-            mask = np.ones_like(m_range, dtype=bool)
-            mask[curr_prot] = False
-        
-            m_range = m_range[mask]
-            front_factors = m_range - curr_prot
-
-            alpha = []
-            for m in m_range:
-                numer = self.h_plus**m * np.prod(curr_k_set[:curr_n-m])
-                denom = self.h_plus**curr_n
-                for ii, _ in enumerate(curr_k_set):
-                    denom += self.h_plus**(curr_n-ii-1)*np.prod(
-                        curr_k_set[:ii+1])
-                alpha.append(numer/denom)
-
-            func = 0
-            for curr_alpha, curr_ff in zip(alpha, front_factors):
-                func += curr_ff * curr_alpha
-            funcs.append(func)
-        return np.asarray(funcs)
+    def _calc_equation_value(self, c_h_plus, v_analyte, v_titrant):
+        return float(self.equation.subs(
+            {'h_plus': c_h_plus, 'v_analyte': v_analyte,
+             'v_titrant': v_titrant}))
