@@ -16,4 +16,5 @@ class TestController(unittest.TestCase):
 
     def test_titration(self):
 
-        self.titration = titration([1E7, 0, 0])
+        self.titration = titration(
+            [[1E7, 0, 0]], [[1E-16]], [0.1], [0.1], [1], [0])
