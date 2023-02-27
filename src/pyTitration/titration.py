@@ -219,10 +219,8 @@ class titration():
         v_titrant = Symbol('v_titrant')
         v_analyte = Symbol('v_analyte')
 
-        analyte_func = self.analyte._calc_equation()
-        titrant_func = self.titrant._calc_equation()
-
-        self.equation = -v_titrant/v_analyte - analyte_func/titrant_func
+        self.equation = -v_titrant/v_analyte - (
+            self.analyte.equation/self.titrant.equation)
 
     def _calc_equation_value(self, c_h_plus, v_analyte, v_titrant):
         return float(self.equation.subs(
