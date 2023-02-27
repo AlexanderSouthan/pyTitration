@@ -5,7 +5,7 @@
 # pyTitration
 Package for calculating titration curves of arbitrary mixtures. The calculations follow the formalism described by Robert de Levie in:
 
-*Analytical Chemistry* **1996**, *68* (4), 585-590. DOI: 10.1021/ac950430l. 
+*Analytical Chemistry* **1996**, *68* (4), 585-590. [DOI: 10.1021/ac950430l. ](https://dx.doi.org/10.1021/ac950430l)
 
 ## Installation
 Download and run the following command from the repository folder works:
