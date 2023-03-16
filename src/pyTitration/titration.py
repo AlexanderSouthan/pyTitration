@@ -15,9 +15,14 @@ from little_helpers.array_tools import closest_index
 
 class solution():
     def __init__(self, k_solutes, c_solutes, prot_left, kw=1E-14):
+        k_len = [len(curr_k_set) for curr_k_set in k_solutes]
+        if np.ptp(k_len) != 0:
+            max_len = max(k_len)
+            k_solutes = [curr_k_set + [0]*(max_len-len(curr_k_set))
+                         for curr_k_set in k_solutes]
         self.k_solutes = np.asarray(k_solutes)
         self.c_solutes = np.asarray(c_solutes)
-        self.prot_left = prot_left
+        self.prot_left = np.asarray(prot_left, dtype=int)
         self.kw = kw
 
         self.h_plus = Symbol('h_plus')
@@ -211,9 +216,18 @@ class titration():
             raise ValueError('self.latest_curve is None. Run self.curve(...) '
                              'first or provide titration curve data manually.')
 
-        idx = closest_index(sorted([ph1, ph2]), self.latest_curve[1])
+        idx = closest_index([ph1, ph2], self.latest_curve[1])
         volume = np.diff(self.latest_curve[0][idx]).item()
         return volume
+
+    def export_titration_curve(self, file_name):
+        if self.latest_curve is None:
+            raise ValueError(
+                'No titration curve available for export, calculate one '
+                'first.')
+        else:
+            exp = np.asarray(self.latest_curve).T
+            np.savetxt(file_name + '.csv', exp, delimiter=',')
 
     def _calc_equation(self):
         v_titrant = Symbol('v_titrant')
