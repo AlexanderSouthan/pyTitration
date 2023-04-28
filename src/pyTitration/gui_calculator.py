@@ -126,6 +126,7 @@ class titration_window(QtWidgets.QWidget):
                 self.les[curr_name].textChanged.connect(self.read_param_le)
 
         self.titcurve_btn.clicked.connect(self.draw_titration_curve)
+        self.export_btn.clicked.connect(self.export_titration_curve)
 
     def center(self):  # centers object on screen
         qr = self.frameGeometry()
@@ -135,8 +136,11 @@ class titration_window(QtWidgets.QWidget):
 
     def update_k_values(self):
         if self.acid_presets_combo.currentText() != '':
-            for curr_k_lbl, curr_k in zip(self.params.index[1:4], k_values[self.acid_combo.currentText()][self.acid_presets_combo.currentText()]):
+            for curr_k_lbl, curr_k in zip(self.params.index[1:4], k_values['acid'][self.acid_presets_combo.currentText()]):
+                self.les[curr_k_lbl].textChanged.disconnect()
                 self.les[curr_k_lbl].setText(str(curr_k))
+                self.les[curr_k_lbl].textChanged.connect(self.read_param_le)
+        self.read_param_le()
 
     def read_param_le(self):
         for curr_name in self.params.index:
@@ -145,15 +149,24 @@ class titration_window(QtWidgets.QWidget):
             else:
                 self.params[curr_name] = float(self.les[curr_name].text())
 
+        k_analyte = [self.params.iloc[1:4].tolist()]
+        if self.params['acid_base'] == 'acid':
+            k_titrant = [[1E-20]]
+            prot_left_titrant = [0]
+            prot_left_analyte = [len([a for a in k_analyte[0] if a!=0])]
+        else:
+            k_titrant = [[1E20]]
+            prot_left_titrant = [1]
+            prot_left_analyte = [0]
+
         self.titration.set_basic_params(
-            self.params.iloc[1:4].tolist(), mode=self.params['acid_base'],
+            k_analyte, k_titrant, [self.params.iloc[6]],
+            [self.params.iloc[5]], prot_left_analyte, prot_left_titrant,
             kw=self.params.iloc[4])
 
     def draw_titration_curve(self):
         self.titration.curve(
             self.params['<i>V</i><sub>solution</sub> [L]'],
-            self.params['<i>c</i><sub>solution</sub> [mol/L]'],
-            self.params['<i>c</i><sub>titrant</sub> [mol/L]'],
             data_points=500, indep_var='pH',
             indep_var_min=self.params['pH<sub>min</sub>'],
             indep_var_max=self.params['pH<sub>max</sub>'])
@@ -161,6 +174,15 @@ class titration_window(QtWidgets.QWidget):
         self.error_line.setData(
             self.titration.latest_curve[0],
             self.titration.latest_curve[1])
+
+    def export_titration_curve(self):
+        file_type = 'csv file (*.csv)'
+        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, 'Save latest titration curve to file', 'curr_curve',
+            filter=file_type)
+
+        if file_name != '':
+            self.titration.export_titration_curve(file_name[:-4])
 
 if __name__ == '__main__':
     import sys
