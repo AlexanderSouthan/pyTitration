@@ -191,8 +191,8 @@ class titration():
             if (indep_var_min <= self.ph_bounds[0]) or (
                     indep_var_max >= self.ph_bounds[1]):
                 raise ValueError(
-                    'The minimum pH value must be greater than {} and smaller '
-                    'than {} (the analyte/titrant pH values), but are {} '
+                    'The minimum and maximum pH values must be between {} and '
+                    '{} (the analyte/titrant pH values), but are {} '
                     'and {}.'.format(self.ph_bounds[0], self.ph_bounds[1],
                                      indep_var_min, indep_var_max))
 
