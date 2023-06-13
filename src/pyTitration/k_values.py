@@ -17,6 +17,7 @@ acids.append(pd.Series([10**-2.14, 10**-7.2, 10**-12.37], name='phosphoric acid'
 acids.append(pd.Series([10**2.8, 10**-1.99, 0], name='sulfuric acid', index=k_values['acid'].index))
 acids.append(pd.Series([10**-4.75, 0, 0], name='acetic acid', index=k_values['acid'].index))
 acids.append(pd.Series([10**-3.13, 10**-4.76, 10**-6.39], name='citric acid', index=k_values['acid'].index))
+acids.append(pd.Series([10**-4.66, 0, 0], name='methacrylic acid', index=k_values['acid'].index))
 acids.append(pd.Series([4.46E-7, 4.69E-11, 0], name='carbonic acid', index=k_values['acid'].index))
 acids.append(pd.Series([10**-6.15, 0, 0], name='2-(N-morpholino)ethanesulfonic acid (MES)', index=k_values['acid'].index))
 acids.append(pd.Series([10**-3, 10**-7.48, 0], name='4-(2-hydroxyethyl)-1-piperazineethanesulfonic acid (HEPES)', index=k_values['acid'].index))
