@@ -63,6 +63,14 @@ gelatin_titration_buffered = titration(
     prot_left_ana=[1]*len(gelatin_type_a['c_10% [mol/L]']) + [3],
     prot_left_tit=[0])
 
+# titration of a 10 % gelatin solution in water with 0.6 M methacrylic acid
+gelatin_maa_titration = titration(
+    k_analyte=[[curr_k] for curr_k in gelatin_type_a['pka_bjellqvist']] + [k_values['acid']['methacrylic acid'].tolist()],
+    k_titrant=[k_values['acid']['water']],
+    c_analyte=gelatin_type_a['c_10% [mol/L]'].tolist() + [0.6], c_titrant=[4],
+    prot_left_ana=[1]*len(gelatin_type_a['c_10% [mol/L]']) + [1],
+    prot_left_tit=[0])
+
 x0, y0 = simple_titration.curve(
     0.5, indep_var='v_titrant', indep_var_min=0, indep_var_max=1,
     data_points=1000)
@@ -79,6 +87,8 @@ x4, y4 = gelatin_titration.curve(
     0.25, indep_var='pH', indep_var_min=1.4, indep_var_max=12, data_points=1000)
 x5, y5 = gelatin_titration_buffered.curve(
     0.25, indep_var='pH', indep_var_min=1.4, indep_var_max=12, data_points=1000)
+x6, y6 = gelatin_maa_titration.curve(
+    0.3, indep_var='pH', indep_var_min=1.4, indep_var_max=12, data_points=1000)
 
 simple_titration.export_titration_curve('simple_titration')
 acid_titration.export_titration_curve('acid_titration')
@@ -86,7 +96,22 @@ base_titration.export_titration_curve('base_titration')
 acid_mix_titration.export_titration_curve('acid_mix_titration')
 gelatin_titration.export_titration_curve('gelatin_titration')
 gelatin_titration_buffered.export_titration_curve('gelatin_titration_buffered')
+gelatin_maa_titration.export_titration_curve('gelatin_maa_titration')
 
-plt.plot(x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5)
-plt.xlabel('$V_\mathrm{titrant}$ [L]')
-plt.ylabel('pH')
+
+fig1, ax1 = plt.subplots()
+ax1.plot(x0, y0, label='HCl + NaOH')
+ax1.plot(x1, y1, label='H2CO3 + NaOH')
+ax1.plot(x2, y2, label='3 Acdis with NaOH')
+ax1.plot(x3, y3, label='NaCO3 + HCl')
+ax1.set_xlabel('$V_\mathrm{titrant}$ [L]')
+ax1.set_ylabel('pH')
+ax1.legend()
+
+fig2, ax2 = plt.subplots()
+ax2.plot(x4, y4, label='Gelatin in water')
+ax2.plot(x5, y5, label='Gelatin in 10 mM PBS')
+ax2.plot(x6, y6, label='Gelatin in water with 0.6 M methacrylic acid')
+ax2.set_xlabel('$V_\mathrm{titrant}$ [L]')
+ax2.set_ylabel('pH')
+ax2.legend()
