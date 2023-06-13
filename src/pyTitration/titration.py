@@ -11,6 +11,7 @@ from sympy import solveset
 from scipy.optimize import brentq
 
 from little_helpers.array_tools import closest_index
+from little_helpers.num_derive import derivative
 
 
 class solution():
@@ -210,6 +211,15 @@ class titration():
 
         self.latest_curve = (v_titrant, ph)
         return self.latest_curve
+
+    def curve_derivative(self, order=1):
+        if self.latest_curve is None:
+            raise ValueError('self.latest_curve is None. Run self.curve(...) '
+                             'first or provide titration curve data manually.')
+
+        deriv = derivative(self.latest_curve[0], [self.latest_curve[1]],
+                           order=order)
+        return (self.latest_curve[0], deriv[0])
 
     def volume_between_ph(self, ph1, ph2):
         if self.latest_curve is None:
