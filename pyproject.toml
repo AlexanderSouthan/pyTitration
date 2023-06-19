@@ -1,3 +1,22 @@
+[project]
+name = "pyTitration"
+version = "0.0.1"
+authors = [
+  { name="Alexander Southan" },
+]
+description = "For calculation of titration curves of solutions"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/AlexanderSouthan/pyTitration"
+"Bug Tracker" = "https://github.com/AlexanderSouthan/pyTitration/issues"
+
 [build-system]
 requires = [
     "setuptools>=42",
