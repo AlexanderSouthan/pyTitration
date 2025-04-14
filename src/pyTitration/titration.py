@@ -184,8 +184,8 @@ class titration():
             c_h_plus = np.empty_like(v_titrant)
             for idx, curr_v in enumerate(v_titrant):
                 c_h_plus[idx] = brentq(
-                    self._calc_equation_value, 0,  # self.h_plus_bounds[0],
-                    0.99*self.h_plus_bounds[1], args=(v_analyte, curr_v),
+                    self._calc_equation_value, 0.99*min(self.h_plus_bounds),
+                    0.99*max(self.h_plus_bounds), args=(v_analyte, curr_v),
                     xtol=1E-16)
             ph = -np.log10(c_h_plus)
         elif indep_var == 'pH':

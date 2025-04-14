@@ -90,7 +90,7 @@ x5, y5 = gelatin_titration_buffered.curve(
 x6, y6 = gelatin_maa_titration.curve(
     0.3, indep_var='pH', indep_var_min=1.4, indep_var_max=12, data_points=1000)
 
-simple_titration.export_titration_curve('simple_titration')
+# simple_titration.export_titration_curve('simple_titration')
 acid_titration.export_titration_curve('acid_titration')
 base_titration.export_titration_curve('base_titration')
 acid_mix_titration.export_titration_curve('acid_mix_titration')
