@@ -1,5 +1,5 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![build workflow](https://github.com/AlexanderSouthan/pyTitration/actions/workflows/main.yml/badge.svg)](https://github.com/AlexanderSouthan/pyTitration/actions/workflows/main.yml)
+[![build workflow](https://github.com/AlexanderSouthan/pyTitration/actions/workflows/python-package.yml/badge.svg)](https://github.com/AlexanderSouthan/pyTitration/actions/workflows/python-package.yml)
 [![codecov](https://codecov.io/gh/AlexanderSouthan/pyTitration/branch/master/graph/badge.svg?token=D3U2BZOZQ8)](https://codecov.io/gh/AlexanderSouthan/pyTitration)
 
 # pyTitration
