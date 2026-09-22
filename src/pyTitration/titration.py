@@ -16,6 +16,37 @@ from little_helpers.num_derive import derivative
 
 class solution():
     def __init__(self, k_solutes, c_solutes, prot_left, kw=1E-14):
+        """
+        Initialize a solution instance.
+
+        Parameters
+        ----------
+        k_solutes : list or ndarray
+            Contains the acid dissociation constants (K_a) of the solutes in
+            the solution, must be in decreasing order for each solute. The
+            form is a list containing lists with the K_a values. For example,
+            the monoprotic acid hydrochloric acid would be [[1E7]] and a
+            mixture of hydrochloric acid and phosphoric acid
+            [[1E7], [7.24E-3, 6.31E-8, 4.27E-13]]. The numbers must be the acid
+            dissociation constants also if the solutes are in their basic form!
+            Also pay attention to provide K_a values and NOT the pKa values:
+                pKa = -log10(K_a)
+        c_solutes : ndarray or list of float
+            A list containing the concentrations in mol/L of the solutes in the
+            solution. For each set of K_a values provided in k_analyte,
+            one value in c_analyte is needed.
+        prot_left : ndarray or list of float
+            A list containing the number of residual acidic protons (for which
+            K_a values are provided in k_analyte) of each solute in the analyte
+            solution. For example, H3PO4 would be 3, H2PO4- would be 2, HCl
+            would be 1, NO3- would be 0, and OH- would be 0.
+        kw : float, optional
+            The ion product of pure water. The default is 1E-14.
+
+        Returns
+        -------
+        None
+        """
         k_len = [len(curr_k_set) for curr_k_set in k_solutes]
         if np.ptp(k_len) != 0:
             max_len = max(k_len)
@@ -91,11 +122,13 @@ class titration():
         k_analyte : list or ndarray
             Contains the acid dissociation constants (K_a) of the solutes in
             the solution to be analyzed, must be in decreasing order for each
-            solute. The form is aa list containing lists with the K_a values.
+            solute. The form is a list containing lists with the K_a values.
             For example, the monoprotic acid hydrochloric acid would be
-            [[1E7]] and aa mixture of hydrochloric acid and phosphoric acid
+            [[1E7]] and a mixture of hydrochloric acid and phosphoric acid
             [[1E7], [7.24E-3, 6.31E-8, 4.27E-13]]. The numbers must be the acid
             dissociation constants also if the solutes are in their basic form!
+            Also pay attention to provide K_a values and NOT the pKa values:
+                pKa = -log10(K_a)
         k_titrant : list or ndarray
             Contains the acid dissociation constanst of the solutes in the
             titrant, i.e. the solution added to the analyte during titration.
